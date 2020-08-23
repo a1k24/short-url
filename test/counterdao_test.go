@@ -1,11 +1,13 @@
 package test
 
 import (
+	"github.com/a1k24/short-url/configs"
 	"github.com/a1k24/short-url/internal/app"
 	"testing"
 )
 
 func TestCounterDao(t *testing.T) {
+	configs.Init()
 	name := "dummy_sequence"
 
 	sequence, err := app.GenerateNextSequence(name)

@@ -1,8 +1,9 @@
 package test
 
 import (
-	"github.com/a1k24/short-url/internal/pkg"
 	"testing"
+
+	"github.com/a1k24/short-url/internal/pkg"
 )
 
 func TestCreateConnection(t *testing.T) {

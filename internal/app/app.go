@@ -18,7 +18,7 @@ func HandleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/{id}", redirectHandler)
 	router.HandleFunc("/api/shorten", saveHandler).Methods("POST")
-	log.Fatal(http.ListenAndServe(configs.BaseUrl, router))
+	log.Fatal(http.ListenAndServe(configs.GetBaseUrl(), router))
 }
 
 func saveHandler(writer http.ResponseWriter, request *http.Request) {
@@ -81,6 +81,7 @@ func handleShortenRequest(shortUrlRequest *ShortUrlRequest, writer http.Response
 		log.Println("Failed to save to DB", err)
 		http.Error(writer, "Failed to create short Url.", http.StatusInternalServerError)
 	}
+	json.NewEncoder(writer).Encode(urlInfo)
 }
 
 func createCustomUrl(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
@@ -121,7 +122,7 @@ func createUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 		UrlId:     strconv.FormatInt(sequence, 10),
 		LinkHash:  linkHash,
 		Timestamp: pkg.MakeTimestamp(),
-		ShortUrl:  configs.BaseUrl + "/" + linkHash,
+		ShortUrl:  configs.GetBaseUrl() + "/" + linkHash,
 		UrlMd5:    pkg.CreateMd5hash(shortUrlRequest.LongUrl),
 	}, nil
 }

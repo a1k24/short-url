@@ -6,9 +6,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-)
 
-var counterCollection = database.Collection("counterSequence")
+	"github.com/a1k24/short-url/configs"
+	"github.com/a1k24/short-url/internal/pkg"
+)
 
 func GenerateNextSequence(name string) (int64, error) {
 	filter := bson.D{{"name", name}}
@@ -19,7 +20,7 @@ func GenerateNextSequence(name string) (int64, error) {
 	}
 	var result CounterSequence
 	updateOptions := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-	err := counterCollection.FindOneAndUpdate(context.TODO(), filter, update, updateOptions).Decode(&result)
+	err := pkg.GetCollection(configs.CounterCollectionName).FindOneAndUpdate(context.TODO(), filter, update, updateOptions).Decode(&result)
 	if err != nil {
 		return 0, err
 	}
@@ -28,5 +29,5 @@ func GenerateNextSequence(name string) (int64, error) {
 
 func DropSequence(name string) (*mongo.DeleteResult, error) {
 	filter := bson.D{{"name", name}}
-	return counterCollection.DeleteOne(context.TODO(), filter)
+	return pkg.GetCollection(configs.CounterCollectionName).DeleteOne(context.TODO(), filter)
 }
