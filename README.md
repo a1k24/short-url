@@ -11,7 +11,7 @@ A simple Go implementation of URL shortener using mongo DB as persistent storage
 * Run `go build github.com/a1k24/short-url/cmd/server`
 * Run `./server`
 
-### Sample Curl:
+### Sample CURL:
 ```
 curl -XPOST -H 'Content-Type:application/json' "localhost:10000/api/shorten" \
 -d '{"long_url": "https://www.google.com", "custom_name" : "hello12"}'
