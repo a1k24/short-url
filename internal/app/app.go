@@ -2,16 +2,13 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/a1k24/short-url/configs"
-	"github.com/a1k24/short-url/internal/encoder"
+	"github.com/a1k24/short-url/internal/pkg"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
-	"time"
 )
 
 func HandleRequests() {
@@ -21,30 +18,9 @@ func HandleRequests() {
 	log.Fatal(http.ListenAndServe(configs.BaseUrl, router))
 }
 
-type UrlInfo struct {
-	LongUrl   string `json:"long_url""`
-	UrlId     string `json:"url_id"`
-	LinkHash  string `json:"link_hash"`
-	Timestamp int64  `json:"timestamp"`
-	ShortUrl  string `json:"short_url"`
-	UrlMd5    string `json:"url_md5"`
-}
-
-type UrlAlreadyExistsError string
-
-func (e UrlAlreadyExistsError) Error() string {
-	return fmt.Sprintf("URL with name: %s already exists!", string(e))
-}
-
 var Urls []UrlInfo
 
 var counter uint64 = 0
-
-type ShortUrlRequest struct {
-	LongUrl      string `json:"long_url"`
-	ForceNewHash bool   `json:"force_new_hash"`
-	CustomName   string `json:"custom_name"`
-}
 
 func saveHandler(writer http.ResponseWriter, request *http.Request) {
 	reqBody, _ := ioutil.ReadAll(request.Body)
@@ -52,7 +28,7 @@ func saveHandler(writer http.ResponseWriter, request *http.Request) {
 	json.Unmarshal(reqBody, &shortUrlRequest)
 
 	// validate long url
-	if !isUrl(shortUrlRequest.LongUrl) {
+	if !pkg.IsUrl(shortUrlRequest.LongUrl) {
 		http.Error(writer, "Long url is invalid: "+shortUrlRequest.LongUrl, http.StatusBadRequest)
 		return
 	}
@@ -69,11 +45,6 @@ func saveHandler(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(urlInfo)
 }
 
-func isUrl(str string) bool {
-	u, err := url.Parse(str)
-	return err == nil && u.Scheme != "" && u.Host != ""
-}
-
 func getOrCreateUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 	longUrl := shortUrlRequest.LongUrl
 	if "" != shortUrlRequest.CustomName {
@@ -82,7 +53,7 @@ func getOrCreateUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 
 	var urlInfo *UrlInfo = nil
 	if !shortUrlRequest.ForceNewHash {
-		urlInfo = findExistingUrlInfo(longUrl)
+		urlInfo = findUrlInfoForLongUrl(longUrl)
 	}
 	if nil == urlInfo {
 		urlInfo = createUrlInfo(shortUrlRequest)
@@ -92,16 +63,16 @@ func getOrCreateUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 
 func createCustomUrl(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 	customName := shortUrlRequest.CustomName
-	urlInfo := findUrlInfo(customName)
+	urlInfo := findUrlInfoForHash(customName)
 	if nil != urlInfo {
-		return nil, UrlAlreadyExistsError(customName)
+		return nil, pkg.UrlAlreadyExistsError(customName)
 	}
 	return createUrlInfo(shortUrlRequest), nil
 }
 
-func findExistingUrlInfo(longUrl string) *UrlInfo {
+func findUrlInfoForLongUrl(longUrl string) *UrlInfo {
 	// find from mongo
-	md5hash := encoder.CreateMd5hash(longUrl)
+	md5hash := pkg.CreateMd5hash(longUrl)
 	for _, urlInfo := range Urls {
 		if md5hash == urlInfo.UrlMd5 {
 			return &urlInfo
@@ -114,26 +85,22 @@ func createUrlInfo(shortUrlRequest *ShortUrlRequest) *UrlInfo {
 	counter++ // assumed threadsafe
 	var linkHash = shortUrlRequest.CustomName
 	if "" == linkHash {
-		linkHash = encoder.ToBase62(counter)
+		linkHash = pkg.ToBase62(counter)
 	}
 	return &UrlInfo{
 		LongUrl:   shortUrlRequest.LongUrl,
 		UrlId:     strconv.FormatUint(counter, 10),
 		LinkHash:  linkHash,
-		Timestamp: makeTimestamp(),
+		Timestamp: pkg.MakeTimestamp(),
 		ShortUrl:  configs.BaseUrl + "/" + linkHash,
-		UrlMd5:    encoder.CreateMd5hash(shortUrlRequest.LongUrl),
+		UrlMd5:    pkg.CreateMd5hash(shortUrlRequest.LongUrl),
 	}
 }
 
-func makeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func findUrlInfo(urlHash string) *UrlInfo {
+func findUrlInfoForHash(linkHash string) *UrlInfo {
 	// find from mongo
 	for _, urlInfo := range Urls {
-		if urlHash == urlInfo.LinkHash {
+		if linkHash == urlInfo.LinkHash {
 			return &urlInfo
 		}
 	}
@@ -143,7 +110,7 @@ func findUrlInfo(urlHash string) *UrlInfo {
 func redirectHandler(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	key := vars["id"]
-	urlInfo := findUrlInfo(key)
+	urlInfo := findUrlInfoForHash(key)
 	if nil == urlInfo {
 		http.NotFound(writer, request)
 	}

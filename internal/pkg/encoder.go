@@ -1,4 +1,4 @@
-package encoder
+package pkg
 
 import (
 	"crypto/md5"
