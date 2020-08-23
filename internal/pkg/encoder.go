@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	base         uint64 = 62
-	characterSet        = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	base         int64 = 62
+	characterSet       = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 )
 
-func CreateMd5hash(url string) string {
+// Takes an input as string and returns the its base32 md5 hash
+func CreateMd5hash(input string) string {
 	h := md5.New()
-	io.WriteString(h, url)
+	io.WriteString(h, input)
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func ToBase62(num uint64) string {
+// Takes an unsigned integer input and returns a base62 string as hash
+func ToBase62(num int64) string {
 	encoded := ""
 	for num > 0 {
 		r := num % base

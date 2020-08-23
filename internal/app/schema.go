@@ -14,3 +14,8 @@ type ShortUrlRequest struct {
 	ForceNewHash bool   `json:"force_new_hash"`
 	CustomName   string `json:"custom_name"`
 }
+
+type CounterSequence struct {
+	Name    string
+	Counter int64
+}
