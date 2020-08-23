@@ -1,9 +1,11 @@
 package test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/a1k24/short-url/internal/app"
+	"github.com/a1k24/short-url/internal/pkg"
 )
 
 var info = app.UrlInfo{
@@ -16,6 +18,9 @@ var info = app.UrlInfo{
 }
 
 func TestDao(t *testing.T) {
+	_, cancel := pkg.CreateConnection(os.Getenv("MONGO_URL")) // ensure mongo client is created at start
+	defer cancel()
+
 	findByLinkHashAndAssert(t, false)
 
 	findByMd5AndAssert(t, false)

@@ -14,10 +14,11 @@ import (
 var client *mongo.Client = nil
 var cancel context.CancelFunc = nil
 
-func CreateConnection() (*mongo.Client, context.CancelFunc) {
+func CreateConnection(mongoUrl string) (*mongo.Client, context.CancelFunc) {
+	var err error = nil
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
-		configs.GetMongoUrl(),
+	client, err = mongo.Connect(ctx, options.Client().ApplyURI(
+		mongoUrl,
 	))
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +29,7 @@ func CreateConnection() (*mongo.Client, context.CancelFunc) {
 func GetMongoClient() *mongo.Client {
 	if client == nil {
 		cancelConnection() // cancel previous connection if any
-		client, cancel = CreateConnection()
+		client, cancel = CreateConnection(configs.GetMongoUrl())
 	}
 	return client
 }
@@ -40,9 +41,10 @@ func cancelConnection() {
 }
 
 func getGlobalDB() *mongo.Database {
-	return GetMongoClient().Database(configs.GetDBName())
+	return GetMongoClient().Database(configs.DBName)
 }
 
+//returns a collection instance for a particular collection name
 func GetCollection(name string) *mongo.Collection {
 	return getGlobalDB().Collection(name)
 }

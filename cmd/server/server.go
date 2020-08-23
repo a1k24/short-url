@@ -11,7 +11,7 @@ import (
 func main() {
 	configs.Init()
 	log.Println("Server started.")
-	_, cancel := pkg.CreateConnection() // ensure mongo client is created at start
+	_, cancel := pkg.CreateConnection(configs.GetMongoUrl()) // ensure mongo client is created at start
 	log.Println("Mongo connection established.")
 	defer cancel()
 	app.HandleRequests()

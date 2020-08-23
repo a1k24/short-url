@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-var BaseUrl string
-var DBName string
+var baseUrl string
+var DBName string = "globaldb"
 var username string
 var password string
 var MongoUrl string
@@ -20,7 +20,7 @@ func Init() {
 	flag.StringVar(&username, "username", "username", "user name for mongodb")
 	flag.StringVar(&password, "password", "password", "password for mongodb")
 	flag.StringVar(&DBName, "dbname", "globaldb", "database name for mongodb")
-	flag.StringVar(&BaseUrl, "base_url", "localhost:10000", "base url for server")
+	flag.StringVar(&baseUrl, "base_url", "localhost:10000", "base url for server")
 	flag.Parse()
 	MongoUrl = fmt.Sprintf("mongodb+srv://%s:%s@test-cluster.f8tgw.mongodb.net/%s?retryWrites=true&w=majority", username, password, DBName)
 }
@@ -30,9 +30,5 @@ func GetMongoUrl() string {
 }
 
 func GetBaseUrl() string {
-	return BaseUrl
-}
-
-func GetDBName() string {
-	return DBName
+	return baseUrl
 }

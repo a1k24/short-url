@@ -1,13 +1,17 @@
 package test
 
 import (
-	"github.com/a1k24/short-url/configs"
-	"github.com/a1k24/short-url/internal/app"
+	"os"
 	"testing"
+
+	"github.com/a1k24/short-url/internal/app"
+	"github.com/a1k24/short-url/internal/pkg"
 )
 
 func TestCounterDao(t *testing.T) {
-	configs.Init()
+	mongo_url := os.Getenv("MONGO_URL")
+	_, cancel := pkg.CreateConnection(mongo_url) // ensure mongo client is created at start
+	defer cancel()
 	name := "dummy_sequence"
 
 	sequence, err := app.GenerateNextSequence(name)
@@ -30,6 +34,8 @@ func TestCounterDao(t *testing.T) {
 }
 
 func deleteSequence(t *testing.T, name string) {
+	_, cancel := pkg.CreateConnection(os.Getenv("MONGO_URL")) // ensure mongo client is created at start
+	defer cancel()
 	deleteResult, err := app.DropSequence(name)
 	if nil != err {
 		t.Error("Failed to drop sequence.")
