@@ -9,7 +9,11 @@ A simple Go implementation of URL shortener using mongo DB as persistent storage
 
 ### To start server
 * Run `go build github.com/a1k24/short-url/cmd/server`
-* Run `./server`
+* Run `./server -username <username> -password <password>`
+
+### Using Docker
+* Run `docker build --build-arg USERNAME=<username> --build-arg PASSWORD=<password> -t server . -f build/package/Dockerfile`
+* Run `docker run --publish 127.0.0.1:8080:10000 --name test --rm server`
 
 ### Sample CURL:
 ```
@@ -27,3 +31,13 @@ Response:
   "url_md5": "8ffdefbdec956b595d257f0aaeefd623"
 }
 ```
+Sample hosted at:
+https://short-url.a1k24.usw1.kubesail.org ( use this in place of localhost:10000 )
+
+Test shortened links:
+https://short-url.a1k24.usw1.kubesail.org/hello12
+https://short-url.a1k24.usw1.kubesail.org/hello2
+
+
+
+
