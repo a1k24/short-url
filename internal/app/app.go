@@ -134,9 +134,12 @@ func redirectHandler(writer http.ResponseWriter, request *http.Request) {
 	if nil != err {
 		log.Println(err)
 		http.Error(writer, "Unknown error occurred.", http.StatusInternalServerError)
+		return
 	}
 	if nil == urlInfo {
 		http.NotFound(writer, request)
+		return
 	}
+	go IncrementClickCount(urlInfo.LinkHash)
 	http.Redirect(writer, request, urlInfo.LongUrl, http.StatusFound)
 }

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -45,4 +46,17 @@ func FindUrlByUrlMd5(urlMd5 string) (*UrlInfo, error) {
 		return nil, err
 	}
 	return &result, nil
+}
+
+func IncrementClickCount(linkHash string) {
+	filter := bson.D{{"linkhash", linkHash}}
+	update := bson.D{
+		{"$inc", bson.D{
+			{"clickcount", 1},
+		}},
+	}
+	_, err := pkg.GetCollection(configs.UrlCollectionName).UpdateOne(context.TODO(), filter, update)
+	if nil != err {
+		log.Println("Failed to increment click count: ", err)
+	}
 }

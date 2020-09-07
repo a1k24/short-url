@@ -60,6 +60,23 @@ func findByMd5AndAssert(t *testing.T, present bool) {
 	}
 }
 
+func incrementClickCount(t *testing.T, present bool) {
+	app.IncrementClickCount(info.LinkHash)
+	urlInfo, err := app.FindUrlByLinkHash(info.LinkHash)
+	if nil != err {
+		t.Error("Failed to find by LinkHash", err)
+	}
+	if !present {
+		if urlInfo != nil {
+			t.Error("Found random data by Md5", err)
+		}
+		return
+	}
+	if g, w := urlInfo.ClickCount, 1; g != w {
+		t.Errorf("url_info: %s, count = %v, want %v", info.LinkHash, g, w)
+	}
+}
+
 func findByLinkHashAndAssert(t *testing.T, present bool) {
 	urlInfo, err := app.FindUrlByLinkHash(info.LinkHash)
 	if nil != err {
