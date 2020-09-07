@@ -17,8 +17,26 @@ import (
 func HandleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/{id}", redirectHandler)
+	router.HandleFunc("/api/{id}", fetchHandler).Methods("GET")
 	router.HandleFunc("/api/shorten", saveHandler).Methods("POST")
 	log.Fatal(http.ListenAndServe(configs.GetBaseUrl(), router))
+}
+
+func fetchHandler(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	key := vars["id"]
+	urlInfo, err := FindUrlByLinkHash(key)
+	if nil != err {
+		log.Println("Failed to fetch UrlInfo: ", key, err)
+		http.Error(writer, "Failed to fetch UrlInfo.", http.StatusInternalServerError)
+		return
+	}
+	if nil == urlInfo {
+		log.Println("Could not find linkHash: ", key)
+		http.Error(writer, "Could not find linkHash", http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(writer).Encode(urlInfo)
 }
 
 func saveHandler(writer http.ResponseWriter, request *http.Request) {
