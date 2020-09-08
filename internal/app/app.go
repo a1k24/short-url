@@ -10,11 +10,16 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/allegro/bigcache"
+
 	"github.com/a1k24/short-url/configs"
 	"github.com/a1k24/short-url/internal/pkg"
 )
 
-func HandleRequests() {
+var redirectCache *bigcache.BigCache
+
+func HandleRequests(cache *bigcache.BigCache) {
+	redirectCache = cache
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/{id}", redirectHandler)
 	router.HandleFunc("/api/{id}", fetchHandler).Methods("GET")
@@ -147,8 +152,15 @@ func createUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 
 func redirectHandler(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	key := vars["id"]
-	urlInfo, err := FindUrlByLinkHash(key)
+	linkHash := vars["id"]
+
+	if entry, err := redirectCache.Get(linkHash); err == nil {
+		incrementCountAndRedirect(writer, request, linkHash, string(entry))
+		return
+	}
+
+	log.Println("Missed cache. LinkHash: ", linkHash)
+	urlInfo, err := FindUrlByLinkHash(linkHash)
 	if nil != err {
 		log.Println(err)
 		http.Error(writer, "Unknown error occurred.", http.StatusInternalServerError)
@@ -158,6 +170,11 @@ func redirectHandler(writer http.ResponseWriter, request *http.Request) {
 		http.NotFound(writer, request)
 		return
 	}
-	go IncrementClickCount(urlInfo.LinkHash)
-	http.Redirect(writer, request, urlInfo.LongUrl, http.StatusFound)
+	redirectCache.Set(linkHash, []byte(urlInfo.LongUrl))
+	incrementCountAndRedirect(writer, request, linkHash, urlInfo.LongUrl)
+}
+
+func incrementCountAndRedirect(writer http.ResponseWriter, request *http.Request, linkHash string, longUrl string) {
+	go IncrementClickCount(linkHash)
+	http.Redirect(writer, request, longUrl, http.StatusFound)
 }
