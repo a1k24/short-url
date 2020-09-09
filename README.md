@@ -32,11 +32,11 @@ Response:
 }
 ```
 Sample hosted at:
-https://short-url.a1k24.usw1.kubesail.org ( use this in place of localhost:10000 )
+https://acash.dev ( use this in place of localhost:10000 )
 
 Test shortened links:
-* https://short-url.a1k24.usw1.kubesail.org/hello12
-* https://short-url.a1k24.usw1.kubesail.org/hello2
+* https://acash.dev/hello12
+* https://acash.dev/hello2
 
 
 
