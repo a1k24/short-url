@@ -9,6 +9,7 @@ import (
 )
 
 var baseUrl string
+var domain string
 var DBName string = "globaldb"
 var username string
 var password string
@@ -26,6 +27,7 @@ func Init() {
 	flag.StringVar(&password, "password", "password", "password for mongodb")
 	flag.StringVar(&DBName, "dbname", "globaldb", "database name for mongodb")
 	flag.StringVar(&baseUrl, "baseurl", "0.0.0.0:10000", "base url for server")
+	flag.StringVar(&domain, "domain", "localhost:10000", "domain for shortener")
 	flag.StringVar(&dbHost, "dbhost", "test-cluster.f8tgw.mongodb.net", "host for mongo server")
 	flag.Parse()
 	MongoUrl = fmt.Sprintf("mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority", username, password, dbHost, DBName)
@@ -48,4 +50,8 @@ func GetMongoUrl() string {
 
 func GetBaseUrl() string {
 	return baseUrl
+}
+
+func GetDomain() string {
+	return domain
 }

@@ -145,7 +145,7 @@ func createUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 		UrlId:     strconv.FormatInt(sequence, 10),
 		LinkHash:  linkHash,
 		Timestamp: pkg.MakeTimestamp(),
-		ShortUrl:  configs.GetBaseUrl() + "/" + linkHash,
+		ShortUrl:  configs.GetDomain() + "/" + linkHash,
 		UrlMd5:    pkg.CreateMd5hash(shortUrlRequest.LongUrl),
 	}, nil
 }
