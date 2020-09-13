@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -19,8 +20,8 @@ import (
 
 var redirectCache *bigcache.BigCache
 
-var tmplDir = "web/template/"
-var templates = template.Must(template.ParseFiles(tmplDir + "index.html"))
+var tmplDir, _ = filepath.Abs("web/template/")
+var templates = template.Must(template.ParseFiles(tmplDir + "/index.html"))
 
 func HandleRequests(cache *bigcache.BigCache) {
 	redirectCache = cache

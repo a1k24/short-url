@@ -1,8 +1,7 @@
 FROM golang
 
 ADD . /go/src/github.com/a1k24/short-url/
-
-RUN go get github.com/a1k24/short-url/cmd/server
+WORKDIR /go/src/github.com/a1k24/short-url/
 RUN go install github.com/a1k24/short-url/cmd/server
 
 ARG USERNAME
