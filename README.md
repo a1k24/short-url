@@ -15,7 +15,7 @@ A simple Go implementation of URL shortener using mongo DB as persistent storage
 ### Using Docker
 * Run `docker build --build-arg USERNAME=<username> --build-arg PASSWORD=<password> --build-arg DOMAIN=<domain> -t server . -f build/package/Dockerfile`
 * Run `docker run --publish 127.0.0.1:8080:10000 --name test --rm server`
-* Latest stable [image](https://hub.docker.com/repository/docker/a1k24/short-url)
+* Latest stable [image](https://hub.docker.com/r/a1k24/short-url)
 
 ### Sample CURL:
 Create Short URL:
