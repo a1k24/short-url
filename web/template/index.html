@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Short Url</title>
+</head>
+
+<body>
+<div class="container">
+    <div class="container__item">
+        <label>
+            <input id = "custom_name" class="form__field__small" placeholder="Name"/>
+        </label>
+        <label>
+            <input id = "long_url" type="url" class="form__field" placeholder="https://www.example.com"/>
+        </label>
+        <button id="shorten" class="btn btn--primary btn--inside uppercase">Shorten</button>
+    </div>
+    <div class="container__item">
+        <p id="result"></p>
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+    $("#shorten").click(function(){
+        var url_request = {
+            long_url: $("#long_url").val(),
+            custom_name: $("#custom_name").val(),
+        }
+        $.ajax({
+          type: "POST",
+          contentType: "application/json",
+          url: '/api/shorten',
+          data: JSON.stringify(url_request),
+          dataType: "json",
+          success: function(result){
+            $("#result").text(result.short_url);
+          },
+          error: function(result){
+            $("#result").text(result.responseText);
+          }
+        });
+    });
+
+</script>
+
+</body>
+</html>

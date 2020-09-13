@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,9 +19,15 @@ import (
 
 var redirectCache *bigcache.BigCache
 
+var tmplDir = "web/template/"
+var templates = template.Must(template.ParseFiles(tmplDir + "index.html"))
+
 func HandleRequests(cache *bigcache.BigCache) {
 	redirectCache = cache
 	router := mux.NewRouter().StrictSlash(true)
+	router.PathPrefix("/styles/").Handler(http.StripPrefix("/styles/",
+		http.FileServer(http.Dir("web/static/"))))
+	router.HandleFunc("/", redirectHandler)
 	router.HandleFunc("/{id}", redirectHandler)
 	router.HandleFunc("/api/{id}", fetchHandler).Methods("GET")
 	router.HandleFunc("/api/shorten", saveHandler).Methods("POST")
@@ -152,26 +159,36 @@ func createUrlInfo(shortUrlRequest *ShortUrlRequest) (*UrlInfo, error) {
 
 func redirectHandler(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	linkHash := vars["id"]
-
-	if entry, err := redirectCache.Get(linkHash); err == nil {
-		incrementCountAndRedirect(writer, request, linkHash, string(entry))
+	switch linkHash := vars["id"]; linkHash {
+	case "home":
+		err := templates.ExecuteTemplate(writer, "index.html", "") // template name is template file name
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		return
-	}
-
-	log.Println("Missed cache. LinkHash: ", linkHash)
-	urlInfo, err := FindUrlByLinkHash(linkHash)
-	if nil != err {
-		log.Println(err)
-		http.Error(writer, "Unknown error occurred.", http.StatusInternalServerError)
+	case "":
+		http.Redirect(writer, request, "/home", http.StatusFound)
 		return
+	default:
+		if entry, err := redirectCache.Get(linkHash); err == nil {
+			incrementCountAndRedirect(writer, request, linkHash, string(entry))
+			return
+		}
+		log.Println("Missed cache. LinkHash: ", linkHash)
+		urlInfo, err := FindUrlByLinkHash(linkHash)
+		if nil != err {
+			log.Println(err)
+			http.Error(writer, "Unknown error occurred.", http.StatusInternalServerError)
+			return
+		}
+		if nil == urlInfo {
+			http.NotFound(writer, request)
+			return
+		}
+		redirectCache.Set(linkHash, []byte(urlInfo.LongUrl))
+		incrementCountAndRedirect(writer, request, linkHash, urlInfo.LongUrl)
 	}
-	if nil == urlInfo {
-		http.NotFound(writer, request)
-		return
-	}
-	redirectCache.Set(linkHash, []byte(urlInfo.LongUrl))
-	incrementCountAndRedirect(writer, request, linkHash, urlInfo.LongUrl)
 }
 
 func incrementCountAndRedirect(writer http.ResponseWriter, request *http.Request, linkHash string, longUrl string) {

@@ -6,7 +6,13 @@ import (
 	"time"
 )
 
-var validStatusCodes = map[int]struct{}{http.StatusOK: {}, http.StatusAccepted: {}, http.StatusMovedPermanently: {}, http.StatusForbidden: {}}
+var validStatusCodes = map[int]struct{}{
+	http.StatusOK:               {},
+	http.StatusAccepted:         {},
+	http.StatusMovedPermanently: {},
+	http.StatusForbidden:        {},
+	http.StatusMethodNotAllowed: {},
+}
 
 // Takes inputUrl as string and validates for schema, host and if URL returns proper response on HEAD
 func IsValidUrl(inputUrl string) bool {
